@@ -51,8 +51,8 @@ function GenerateTileSets(quads, setsX, setsY, sizeX, sizeY)
             table.insert(tilesets, {})
             tableCounter = tableCounter + 1
 
-            for y = sizeY * (tilesetY - 1) + 1, sizeY * (tilesetY - 1) + 1 + sizeY do
-                for x = sizeX * (tilesetX - 1) + 1, sizeX * (tilesetX - 1) + 1 + sizeX do
+            for y = sizeY * (tilesetY - 1) + 1, sizeY * (tilesetY - 1) + sizeY do
+                for x = sizeX * (tilesetX - 1) + 1, sizeX * (tilesetX - 1) + sizeX do
                     table.insert(tilesets[tableCounter], quads[sheetWidth * (y - 1) + x])
                 end
             end
