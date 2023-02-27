@@ -18,8 +18,10 @@ function PlayState:init()
     self.gravityOn = true
     self.gravityAmount = 6
 
+    self.startTile = self:findStartTile()
+
     self.player = Player({
-        x = 0, y = 0,
+        x = self.startTile, y = 0,
         width = 16, height = 20,
         texture = 'green-alien',
         stateMachine = StateMachine {
@@ -133,5 +135,34 @@ function PlayState:spawnEnemies()
                 end
             end
         end
+    end
+end
+
+--[[
+    Check tilemap so that player starts on a ground tile and not a chasm or a block
+]]
+function PlayState:findStartTile()
+    for x = 1, self.tileMap.width do
+        for y = 1, self.tileMap.height do
+
+            -- check for game objects in the starting column
+            for k, object in pairs(self.level.objects) do
+                
+                -- get reference to tile where the object is
+                local objectTile = self.tileMap:pointToTile(object.x + object.width / 2, object.y + object.height / 2)
+                
+                -- if the object is a block, go to next column
+                if objectTile == self.tileMap.tiles[y][x] and object.collidable then
+                    goto continue
+                end
+            end
+
+            -- check for ground tile and return corresponding map column
+            if self.tileMap.tiles[y][x].id == TILE_ID_GROUND then
+                return (x - 1) * 16
+            end
+        end
+
+        ::continue::
     end
 end
