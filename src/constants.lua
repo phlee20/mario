@@ -88,6 +88,22 @@ GEMS = {
 
 JUMP_BLOCKS = {}
 
+KEYS = {
+    1, 2, 3, 4
+}
+
+LOCKS = {
+    5, 6, 7, 8
+}
+
+FLAGPOLE = {
+    1, 2, 3, 4, 5, 6
+}
+
+FLAGS = {
+    7, 16, 25, 34
+}
+
 for i = 1, 30 do
     table.insert(JUMP_BLOCKS, i)
 end

@@ -16,7 +16,14 @@ function LevelMaker.generate(width, height)
     local objects = {}
 
     local tileID = TILE_ID_GROUND
-    
+
+    -- flag for whether a key and lock exist
+    local keyExists = false
+    local lockExists = false
+    local goalExists = false
+
+    local keyLock = math.random(#KEYS)
+
     -- whether we should draw our tiles with toppers
     local topper = true
     local tileset = math.random(20)
@@ -37,8 +44,19 @@ function LevelMaker.generate(width, height)
                 Tile(x, y, tileID, nil, tileset, topperset))
         end
 
+        -- height at which we would spawn a potential jump block
+        local blockHeight = 4
+
+        -- set final tile as ground for goal flag
+        if x == width - 1 then
+            tileID = TILE_ID_GROUND
+            for y = 7, height do
+                table.insert(tiles[y],
+                    Tile(x, y, tileID, y == 7 and topper or nil, tileset, topperset))
+            end
+
         -- chance to just be emptiness
-        if math.random(7) == 1 then
+        elseif math.random(7) == 1 then
             for y = 7, height do
                 table.insert(tiles[y],
                     Tile(x, y, tileID, nil, tileset, topperset))
@@ -46,8 +64,6 @@ function LevelMaker.generate(width, height)
         else
             tileID = TILE_ID_GROUND
 
-            -- height at which we would spawn a potential jump block
-            local blockHeight = 4
 
             for y = 7, height do
                 table.insert(tiles[y],
@@ -157,6 +173,106 @@ function LevelMaker.generate(width, height)
                         end
                     }
                 )
+            end
+
+            -- chance to spawn key
+            if not keyExists then
+                
+                if math.random(10) == 1 then
+                    table.insert(objects,
+                
+                        -- key
+                        GameObject {
+                            texture = 'key-lock',
+                            x = (x - 1) * TILE_SIZE,
+                            y = (blockHeight + 1) * TILE_SIZE,
+                            width = 16,
+                            height = 16,
+                            frame = KEYS[keyLock],
+                            collidable = true,
+                            consumable = true,
+                            solid = false,
+
+                            -- if picked up, store and display
+                            onConsume = function(player, object)
+                                gSounds['pickup']:play()
+                                player.key = true
+                            end
+                        }
+                    )
+                    keyExists = true
+                end
+            end
+
+            -- chance to spawn lock
+            if not lockExists then
+
+                if math.random(10) == 1 then
+                    table.insert(objects,
+                
+                        -- key
+                        GameObject {
+                            texture = 'key-lock',
+                            x = (x - 1) * TILE_SIZE,
+                            y = (blockHeight - 1) * TILE_SIZE,
+                            width = 16,
+                            height = 16,
+                            frame = LOCKS[keyLock],
+                            collidable = true,
+                            consumable = false,
+                            solid = true,
+                            hit = false,
+
+                            -- spawn flag if possess key
+                            onCollide = function(object)
+                                if not object.hit then
+                                    gSounds['pickup']:play()
+                                    
+                                    table.insert(objects,
+
+                                        -- flagpole
+                                        GameObject {
+                                            texture = 'flagpole',
+                                            x = (width - 2) * TILE_SIZE,
+                                            y = (blockHeight - 1) * TILE_SIZE,
+                                            width = 16,
+                                            height = 64,
+                                            frame = FLAGPOLE[math.random(#FLAGPOLE)],
+                                            consumable = true,
+
+                                            -- spawn new level when touched
+                                            onConsume = function(player, object)
+                                                gSounds['pickup']:play()
+
+                                                gStateMachine:change('play', {
+                                                    score = player.score,
+                                                    lvl = player.lvl + 1
+                                                })
+                                            end
+                                        }
+                                    )
+
+                                    table.insert(objects,
+                                    
+                                        -- flag
+                                        GameObject {
+                                            texture = 'flags',
+                                            x = (width - 2) * TILE_SIZE + 8,
+                                            y = (blockHeight - 1) * TILE_SIZE + 8,
+                                            width = 16,
+                                            height = 16,
+                                            frame = FLAGS[math.random(#FLAGS)],
+                                            consumable = false
+                                        }
+                                    )
+
+                                    object.hit = true
+                                end
+                            end
+                        }
+                    )
+                    lockExists = true 
+                end
             end
         end
     end
